@@ -1,0 +1,129 @@
+import pygame
+import random
+import sys
+
+pygame.init() # inicia o pygame
+
+
+LARGURA = 800
+ALTURA = 400
+
+tela = pygame.display.set_mode([LARGURA,ALTURA])
+pygame.display.set_caption('JOGO DE OBSTACULOS')
+
+# variáveis do jogo
+# carregamento das imagens
+
+trex1 = pygame.image.load('assets/m1.png')
+trex2 = pygame.image.load('assets/m2.png')
+trex3 = pygame.image.load('assets/m3.png')
+ob1 = pygame.image.load('assets/ob2.png')
+ob2 = pygame.image.load('assets/ob2.png')
+chao = pygame.image.load('assets/g1.png')
+
+# carregou  a img
+
+# transformar em imagens melhores para fins de melhoria
+im = 60,60
+
+imagem_menor = pygame.transform.scale(trex1, im)
+imagem_menor2 = pygame.transform.scale(trex2, im)
+imagem_menor3 = pygame.transform.scale(trex3, im)
+
+trex_x = 100 # posição do mário
+trex_y = 200 # posição do mário
+
+# pulo
+vel_y = 1
+gravidade = 1  # Para retornar ao chão
+pulando = False # inicialmente sem pulo
+
+# posicionamento do chão
+chao_x = 0
+
+# posicionamentos dos cactos
+cact_x = 800
+cact_y = 300
+
+# frame 
+frame  = 0  #taxa de quadros - ao que aparece na imagem, contando com sua fluidez
+
+# texto na tela 
+pontuacao = 0 
+fonte = pygame.font.SysFont('arial', 30)
+game_over  = False
+
+clock = pygame.time.Clock()
+
+
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.KEYDOWN:  # Se tipo de evento for tecla pressionada
+            if event.key == pygame.K_SPACE and not pulando: # Se chave de evento for tecla space e o pulando for true (not false)
+                vel_y = -18                                     # Então velocidade pulo de -18
+                pulando = True  
+
+            if event.key == pygame.K_r and game_over:   # Se chave de evento for tecla 'r' e o game_over for False
+                trex_y = 300                            # Posição do mário
+                cact_x = 800                            # Posição do cacto
+                pontuacao = 0                            
+                game_over = False
+
+    if not game_over:      
+        vel_y += gravidade # Adiciona e Atribui que a cada frame, a gravidade vai puxando para baixo
+        trex_y += vel_y # Diminui e Atribui movimento, se posição de x diminui, ele se move para esquerda, dando a entender uma corrida para a direita
+        if trex_y >= 300:  # Se o dino está passando de 300(chão)
+           trex_y = 300  # Dino volta a encostar no chão, com pulo == false
+           pulando = False  
+        chao_x  -= 8
+        if chao_x <= -800: # Torna o chão ininito( Se chão sai a esquerda)
+           chao_x = 0     # Ele retorna ao valor 0
+        cact_x -= 8  
+        if cact_x < 0: # Se cacto com posição menor que 0 
+            cact_x = random.randint(800,1000)  # Gera posição aleatória
+            pontuacao += 1
+        frame += 1
+        if frame > 20: # Imagem do dino que alterna
+            frame = 0
+        if frame <  10:
+            trex = imagem_menor
+        elif frame >=  10 and frame <=15 :
+            trex = imagem_menor2
+        else:
+            trex = imagem_menor3       
+
+        # colisao 
+        trex_rect = trex.get_rect(topleft=(trex_x, trex_y)) # Cria um retangulo envolta da screch do rex
+        cacto_rect = ob1.get_rect(topleft=(cact_x, cact_y))  # Cria um retangulo envolta da screch do dino
+
+        if trex_rect.colliderect(cacto_rect): # Determina a colisão
+            game_over = True
+    tela.fill(('white')) # Preenche o fundo
+
+    tela.blit(chao, (chao_x, 340)) # Torna as imagens reais e visiveis ao user
+    tela.blit(chao, (chao_x +800, 340))
+
+    tela.blit(trex, (trex_x, trex_y))
+
+
+    tela.blit(ob1, (cact_x, cact_y))
+
+    # pontuação
+    texto = fonte.render('SCORE: '+ str(pontuacao), True, (0,0,0)) # O mesmo que o blit, mas funciona pra mostrar a renderização do score
+    tela.blit(texto, (650,20))
+
+    if game_over:
+        texto2 = fonte.render('GAME OVER - clique em R para voltar', True, (255,0,0))
+        tela.blit(texto2, (150,150) )
+    pygame.display.update() # Vai se atualizando 
+
+    clock.tick(30)   # Tempo atribuido a velocidade do jogo
+
+
+
+
+
